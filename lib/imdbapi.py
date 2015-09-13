@@ -10,6 +10,8 @@ IMDB_KEYWORDS_API = 'http://akas.imdb.com/title/{}/keywords'
 
 Movie = namedtuple("Movie", ['rating', 'keywords', 'casts', 'directors', 'id', 'title'])
 
+# TODO  integrate imdb file api ftp://ftp.fu-berlin.de/pub/misc/movies/database/
+
 
 def search(title, year=""):
     """ Searches for a movie
@@ -26,7 +28,6 @@ def search(title, year=""):
     # get first movie
     try:
         result = root.xpath('.//ImdbEntity')[0]
-
         return result.get('id'), result.text
     except IndexError:
         return None
@@ -39,24 +40,22 @@ def lookup_movie(id):
     :return:
     """
     r = requests.get(IMDB_MOVIE_API.format(id))
-    soup = BeautifulSoup(r.text)
+    soup = BeautifulSoup(r.text, 'lxml')
 
-    # implement title
     title = soup.select('h1.header span.itemprop')[0].text.strip()
-
-    rating = soup.select('div.titlePageSprite')[0].text.strip()
-    keywords = lookup_keywords(id)
+    rating = float(soup.select('div.titlePageSprite')[0].text.strip())
+    keywords = lookup_kws(id)
 
     # only important roles in cast
-    casts = [e.text for e in soup.select('table.cast_list span.itemgroup')]
+    casts = [e.text for e in soup.select('table.cast_list span.itemprop')]
     directors = [e.text for e in soup.select('[itemprop="director"] a')]
 
     return Movie(id=id, title=title, rating=rating, keywords=keywords, casts=casts, directors=directors)
 
 
-def lookup_keywords(id):
+def lookup_kws(id):
     r = requests.get(IMDB_KEYWORDS_API.format(id))
-    soup = BeautifulSoup(r.text)
+    soup = BeautifulSoup(r.text, 'lxml')
     return [e.attrs['data-item-keyword'] for e in soup.select('#keywords_content .soda.sodavote')]
 
 
