@@ -2,9 +2,11 @@ import json
 from os.path import expanduser
 from pathlib import Path
 
-DB_FILE = Path(expanduser('~/.config/moviedb/movies.db'))
-CONFIG_FILE = Path(expanduser('~/.config/moviedb/config'))
+config_directory = Path(expanduser('~/.config/moviedb/'))
+db_file = config_directory / 'movies.db'
+config_file = config_directory / 'config'
 
+from lib.imdbapi import lookup_poster
 
 class toobject(object):
     def __init__(self, d):
@@ -12,7 +14,7 @@ class toobject(object):
 
 
 def load_config():
-    with CONFIG_FILE.open() as f:
+    with config_file.open() as f:
         data = f.read()
         config = json.loads(data)
     return toobject(config)

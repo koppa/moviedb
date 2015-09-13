@@ -1,0 +1,17 @@
+body {
+    background-color: #efefef;
+    font-family: Ubuntu;
+}
+
+.movie {
+    background-color: green;
+}
+
+.navbar {
+    background-color: black;
+}
+
+#wordcloud {
+    width: 100%;
+    height: 700px;
+}

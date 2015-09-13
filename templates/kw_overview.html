@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>Index</h1>
+
+<div id='wordcloud'>
+</div>
+
+    {%  for kw, i in kws %}
+        <p>
+            <a href="{{ url_for('filter_movies', key='keywords', value=kw) }}">
+                {{ kw }}, {{ i }}
+            </a>
+        </p>
+    {% endfor %}
+
+{% endblock %}
+{% block js %}
+<script src="{{ url_for('static', filename='wordcloud2.js/src/wordcloud2.js') }}"></script>
+<script>
+list = {{ kws | tojson }}
+options = {
+  list: list,
+  // gridSize: 18,
+  // weightFactor: 3,
+  // fontFamily: 'Finger Paint, cursive, sans-serif',
+  // color: '#f0f0c0',
+  // backgroundColor: '#001f00'
+  // hover: window.drawBox,
+  click: function(item) {
+      redirect("/filter/keywords=" + item[0])
+  }
+};
+WordCloud(document.getElementById('wordcloud'),  options);
+</script>
+{% endblock %}

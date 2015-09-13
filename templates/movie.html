@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block body %}
+    <div class="row">
+        <div class="col-sm-8">
+            <h1> {{ movie.title }} </h1>
+
+            Folder: {{ folder }}
+            <div>
+                Rating:
+                {{ movie.rating }} / 10
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <img src="{{ url_for('poster', id=movie.id) }}"/>
+
+            <a href="{{ url_for('open_directory', id=movie.id) }}" class="btn btn-primary">Open folder</a>
+            <br />
+            <a href="http://imdb.com/title/{{ movie.id }}" class="btn btn-primary">IMDB</a>
+            <br />
+            <a href="#" class="btn btn-primary">Edit movie</a>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-4">
+            Keywords:
+        </div>
+        <div class="col-sm-8">
+            <ul>
+                {% for kw in movie.keywords %}
+                <li>
+                    <a href="{{ url_for('filter_movies', key='keywords', value=kw) }}">
+                        {{ kw }}
+                    </a>
+                </li>
+            {% endfor %}
+            </ul>
+
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-4">
+            Cast:
+        </div>
+        <div class="col-sm-8">
+            {{ ', '.join(movie.casts) }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-4">
+            Director:
+        </div>
+        <div class="col-sm-8">
+            {{ ', '.join(movie.directors) }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-4">
+            Similar movies:
+        </div>
+        <div class="col-sm-8">
+        <ul>
+            {% for m, score in similar %}
+                <li>
+                <a href="{{ url_for('movie', id=m.id) }}">
+                    {{ m.title }} ({{ score }})
+                </a>
+                {{ ", " if not loop.last else "" }}
+                </li>
+            {% endfor %}
+        </ul>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-4">
+        </div>
+        <div class="col-sm-8">
+        </div>
+    </div>
+{% endblock %}
+{% block js %}
+{% endblock %}

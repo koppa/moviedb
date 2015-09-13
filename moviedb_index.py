@@ -1,66 +1,38 @@
-import argparse
-import guessit
-import imdbapi
-import re
+#!/usr/bin/env python
 
+import argparse
 from os.path import expanduser
 from pathlib import Path
-from lib import load_config
+
+import guessit
+
+from lib import load_config, imdbapi
+from lib.helper_index import search_moviedir
 
 """
 This script annotates all movie dirs with .imdb files
 in this file the id of the movies is stored.
 """
 
-# maximum filesize to be searched for imdb ids
-MAXSIZE = 100000
-SEARCH_ID = re.compile('imdb[\t \w\./]*(tt[0-9]+)')
 
 
-def search_moviedir(directory):
-    if not directory.is_dir():
-        return
-
-    def find_match(d):
-        # only files and smaller 100kB
-        for f in d.iterdir():
-            if f.is_dir():
-                yield from find_match(f)
-            elif f.stat().st_size < MAXSIZE:
-                yield f
-
-    interest = find_match(directory)
-    ids = []
-    for f in interest:
-        fh = f.open('r', errors='ignore')
-        matches = [SEARCH_ID.search(l) for l in fh]
-        ids.extend(m.groups()[0] for m in matches if m)
-
-    ids = set(ids)
-
-    if len(ids) > 1:
-        # raise Exception('Multiple ids found', directory, ids)
-        # TODO handle multiple ids
-        print('Multiple ids found', directory, "ignoring")
-
-    for i in ids:
-        return i
-
-
-def add_movie(directory):
+def add_movie(directory, verbose=False):
     """ Recognizes a movie
     Returns the imdb id
     """
 
     # before trying to analyse the directory name, search for a file containing a imdb id
     imdb_id = search_moviedir(directory)
-    if imdb_id is not None:
+    if imdb_id is None:
         guess = guessit.guess_movie_info(directory.resolve(), info=['filename'])
 
         # print(guess.nice_string())
         # print("Correct (at least year and name)? (Y/n)")
         # if getch().lower() == 'n':
         #     pass
+        if verbose:
+            print("Directory:", directory)
+            print("guess:", guess['title'], guess.get('year', ''))
 
         try:
             imdb_id, _ = imdbapi.search(guess['title'], guess.get('year', ''))
@@ -83,6 +55,7 @@ def add_movie(directory):
         fh = (directory / '.imdb').open('w')
         fh.write(imdb_id)
         print("Stored", directory)
+
     else:
         print("Error for:", directory)
 
@@ -91,28 +64,25 @@ def is_annotated(directory):
     return len(list(directory.glob('**/.imdb'))) > 0
 
 
-def index():
+def index(verbose=False, force=False):
     config = load_config()
     for movies_dir in config.directories:
         d = Path(expanduser(movies_dir))
         for subd in d.iterdir():
-            if not is_annotated(subd):
-                add_movie(subd)
+            if not is_annotated(subd) or force:
+                add_movie(subd, verbose)
 
 
 def main():
     parser = argparse.ArgumentParser(description='Indexer')
+    parser.add_argument('--verbose', '-v', action='store_true',
+                        help='')
     parser.add_argument('--force', action='store_true',
                         help='Force the reparsing of the movie folder')
-    parser.add_argument('directory', nargs='?')
+    # parser.add_argument('directory', nargs='?')
     args = parser.parse_args()
 
-    # TODO implement force
-
-    if args.directory:
-        raise NotImplementedError()
-    else:
-        index()
+    index(verbose=args.verbose, force=args.force)
 
 
 if __name__ == '__main__':

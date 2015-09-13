@@ -1,0 +1,6 @@
+[submodule "static/bootstrap"]
+	path = static/bootstrap
+	url = git@github.com:twbs/bootstrap.git
+[submodule "static/wordcloud2.js"]
+	path = static/wordcloud2.js
+	url = git@github.com:timdream/wordcloud2.js.git
